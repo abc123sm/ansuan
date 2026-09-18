@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>フラッシュ暗算</title>
+    <style>
+        body {
+            background-color: #121212; 
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        h3 {
+            color: #ff9999;
+            margin-bottom: 2px; /* 距离拉近 */
+            font-weight: normal;
+            text-align: left; /* 左对齐 */
+        }
+        hr.dotted {
+            border: 0;
+            border-top: 3px dotted #ff9999;
+            margin-bottom: 30px;
+            margin-top: 0;
+        }
+        #number {
+            font-size: 100px;
+            font-weight: bold;
+            text-align: center;
+            padding: 0;
+            margin: 0 auto;
+            border: 8px solid #993333;
+            background-color: #33CC66;
+            color: #FFFFCC;
+            width: 80%; /* 占屏幕 80% */
+            max-width: none;
+            height: 120px;
+            border-radius: 0;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .button {
+            font-size: 20px;
+            padding: 5px 30px;
+            background-color: #e0e0e0;
+            color: #000;
+            border: 2px solid #888;
+            border-radius: 0;
+            cursor: pointer;
+            margin: 15px 0;
+        }
+        .button:active {
+            background-color: #ccc;
+        }
+        .setting {
+            font-size: 16px;
+            text-align: center;
+            border-radius: 0;
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 2px 5px;
+        }
+        #f_seiseki {
+            margin-top: 30px;
+            text-align: left;
+            display: inline-block;
+            font-size: 18px;
+            line-height: 1.5;
+            max-width: 600px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<h3>フラッシュ暗算</h3>
+<hr class="dotted">
+
+<form name="flash" onSubmit="return false;">
+    <p style="text-align: center;"><input type="text" name="number" id="number" autocomplete="off"></p>
+    <p style="text-align: center;"><input type="button" id="b_start" value="开始" onClick="f_start()" class="button"></p>
+    
+    <p style="text-align: center;">
+        <select name="set1" id="set1" class="setting">
+            <option value="1" selected>1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+        </select> <font size="+1">位</font>
+        &nbsp;&nbsp;&nbsp;
+        <select name="set3" id="set3" class="setting">
+            <option value="1" selected>1</option>
+            <option value="0.7">0.7</option>
+            <option value="0.5">0.5</option>
+            <option value="0.45">0.45</option>
+            <option value="0.4">0.4</option>
+            <option value="0.35">0.35</option>
+            <option value="0.3">0.3</option>
+            <option value="0.266">0.266</option>
+            <option value="0.2">0.2</option>
+        </select> <font size="+1">秒</font>
+        &nbsp;&nbsp;&nbsp;
+        <select name="set2" id="set2" class="setting">
+            <option value="3">3</option>
+            <option value="4" selected>4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="10">10</option>
+            <option value="15">15</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+        </select> <font size="+1">数</font>
+    </p>
+</form>
+
+<hr style="border: 1px solid #444; margin-top: 30px;">
+<div id="f_seiseki">【结果】</div>
+
+<script>
+    const inputNumber = document.getElementById('number');
+    const btnStart = document.getElementById('b_start');
+    const set1 = document.getElementById('set1');
+    const set2 = document.getElementById('set2');
+    const set3 = document.getElementById('set3');
+    const seisekiDiv = document.getElementById('f_seiseki');
+
+    let flag = 0;
+    let seiseki = "";
+    let cnt1 = 0;
+    let cnt2 = 0;
+    let blank = 100;
+    
+    let color_text = "#FFFFCC";
+    let color_count = "#FFFF00";
+    
+    let set = [];
+    let kotae = 0;
+    let count = 0;
+    let timerID = null;
+
+    function number_format() {
+        document.flash.reset();
+        inputNumber.value = "";
+        inputNumber.style.color = color_text;
+        inputNumber.disabled = false;
+        btnStart.disabled = false;
+        btnStart.focus();
+    }
+
+    // 允许按回车提交
+    inputNumber.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter' && flag === 1) {
+            f_kotae();
+        }
+    });
+
+    function f_start() {
+        if (flag === 0) {
+            set[0] = parseInt(set1.value);
+            set[1] = parseInt(set2.value);
+            set[2] = parseFloat(set3.value);
+            
+            btnStart.disabled = true;
+            inputNumber.disabled = true;
+            kotae = 0;
+            
+            count = 3;
+            f_countdown();
+        } else {
+            f_kotae();
+        }
+    }
+
+    function f_countdown() {
+        count--;
+        inputNumber.style.color = color_count;
+        
+        if (count === 2) {
+            inputNumber.value = "...";
+        } else if (count === 1) {
+            inputNumber.value = "..";
+        } else if (count === 0) {
+            inputNumber.value = ".";
+        }
+        
+        if (count === 0) {
+            timerID = setTimeout(f_blank, 1000);
+        } else {
+            timerID = setTimeout(f_countdown, 1000);
+        }
+    }
+
+    function f_count() {
+        count++;
+        let r = Math.random();
+        r = Math.floor(r * Math.pow(10, set[0]) * 0.9 + Math.pow(10, set[0] - 1));
+        
+        inputNumber.style.color = color_text;
+        inputNumber.value = getComma(r);
+        kotae += r;
+        
+        timerID = setTimeout(f_blank, set[2] * 1000);
+    }
+
+    function f_blank() {
+        inputNumber.value = "";
+        if (set[1] === count) {
+            f_clear();
+        } else {
+            timerID = setTimeout(f_count, blank);
+        }
+    }
+
+    function f_clear() {
+        clearTimeout(timerID);
+        btnStart.disabled = false;
+        btnStart.value = "确认";
+        inputNumber.disabled = false;
+        inputNumber.focus();
+        flag = 1;
+    }
+
+    function f_kotae() {
+        let s = inputNumber.value.replace(/,/g, '').trim();
+        let t = "";
+        
+        if (s !== "") {
+            cnt2++;
+            if (parseInt(s) === kotae) {
+                alert("✅ 回答正确！！");
+                t = '<span style="color:#33CC66;">○</span>';
+                cnt1++;
+            } else {
+                alert("❌ 回答错误。\n正确答案是：" + getComma(kotae));
+                t = '<span style="color:#ff4444;">×</span>';
+            }
+        } else {
+            alert("正确答案是：" + getComma(kotae));
+        }
+        
+        btnStart.value = "开始";
+        flag = 0;
+        inputNumber.value = "";
+        
+        seiseki += " " + t + getComma(kotae);
+        let rate = "";
+        if (cnt2 > 0) {
+            rate = " [" + cnt1 + "/" + cnt2 + "]";
+        }
+        seisekiDiv.innerHTML = "【结果】" + seiseki + rate;
+    }
+
+    function getComma(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    number_format();
+</script>
+</body>
+</html>
