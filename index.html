@@ -227,7 +227,7 @@
 
         if (is_sub) {
             inputNumber.style.color = "#ff4444"; // 红色显示减法
-            inputNumber.value = "-" + getComma(r);
+            inputNumber.value = getComma(r);
             kotae -= r;
         } else {
             inputNumber.style.color = color_text;
@@ -262,7 +262,7 @@
         
         if (s !== "") {
             cnt2++;
-            if (parseInt(s) === kotae) {
+            if (Math.abs(parseInt(s)) === Math.abs(kotae)) {
                 messageArea.innerHTML = "<span style='color:#33CC66;'>✅ 回答正确！！</span>";
                 t = '<span style="color:#33CC66;">○</span>';
                 cnt1++;
