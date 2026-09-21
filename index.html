@@ -126,6 +126,9 @@
             <option value="50">50</option>
             <option value="100">100</option>
         </select> <span style="font-size: 1.2em;">数</span>
+        <label style="margin-left: 15px; font-size: 1.2em; cursor: pointer; user-select: none;">
+            <input type="checkbox" id="allow_subtraction" style="transform: scale(1.2);"> 减法
+        </label>
     </p>
 </form>
 
@@ -178,6 +181,8 @@
             set[1] = parseInt(set2.value);
             set[2] = parseFloat(set3.value);
             
+            window.current_sub_prob = Math.random();
+
             btnStart.disabled = true;
             inputNumber.disabled = true;
             kotae = 0;
@@ -213,9 +218,22 @@
         let r = Math.random();
         r = Math.floor(r * Math.pow(10, set[0]) * 0.9 + Math.pow(10, set[0] - 1));
         
-        inputNumber.style.color = color_text;
-        inputNumber.value = getComma(r);
-        kotae += r;
+        const allow_subtraction = document.getElementById('allow_subtraction').checked;
+        let is_sub = false;
+        // 每次游戏的减法概率在开始时随机决定（0到1之间），从而使得连续100次全加或全减成为现实可能
+        if (allow_subtraction && Math.random() < window.current_sub_prob) {
+            is_sub = true;
+        }
+
+        if (is_sub) {
+            inputNumber.style.color = "#ff4444"; // 红色显示减法
+            inputNumber.value = "-" + getComma(r);
+            kotae -= r;
+        } else {
+            inputNumber.style.color = color_text;
+            inputNumber.value = getComma(r);
+            kotae += r;
+        }
         
         timerID = setTimeout(f_blank, set[2] * 1000);
     }
